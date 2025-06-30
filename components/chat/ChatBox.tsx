@@ -91,6 +91,13 @@ export default React.forwardRef(function ChatBox(
       }
     }
   }, [socket, recipientId])
+  
+  // Défiler vers le bas lorsque les messages changent
+  useEffect(() => {
+    if (messages.length > 0) {
+      scrollToBottom();
+    }
+  }, [messages])
 
   const fetchLatestMessages = async () => {
     try {
@@ -103,9 +110,11 @@ export default React.forwardRef(function ChatBox(
       const data = await response.json()
       setMessages(data.messages)
       
-      if (!isActive) {
+      // Toujours défiler vers le bas après avoir reçu de nouveaux messages
+      // Utiliser setTimeout pour s'assurer que le DOM est mis à jour avant de défiler
+      setTimeout(() => {
         scrollToBottom()
-      }
+      }, 100)
     } catch (error) {
       console.error('Erreur:', error)
     }
@@ -113,7 +122,13 @@ export default React.forwardRef(function ChatBox(
   
   // Exposer la méthode fetchLatestMessages via la référence
   React.useImperativeHandle(ref, () => ({
-    fetchLatestMessages
+    fetchLatestMessages: async () => {
+      await fetchLatestMessages();
+      // Force le défilement après l'envoi d'un message
+      setTimeout(() => {
+        scrollToBottom();
+      }, 200); // Délai plus long pour s'assurer que le DOM est complètement mis à jour
+    }
   }));
 
   const scrollToBottom = () => {

@@ -2,5 +2,9 @@
   "/page": "app/page.js",
   "/login/page": "app/login/page.js",
   "/users/page": "app/users/page.js",
-  "/chat/[userId]/page": "app/chat/[userId]/page.js"
+  "/chat/[userId]/page": "app/chat/[userId]/page.js",
+  "/api/auth/[...nextauth]/route": "app/api/auth/[...nextauth]/route.js",
+  "/api/users/[id]/route": "app/api/users/[id]/route.js",
+  "/api/messages/route": "app/api/messages/route.js",
+  "/api/messages/read/route": "app/api/messages/read/route.js"
 }

@@ -19,6 +19,7 @@ export async function POST(request: NextRequest) {
     }
     
     // Marquer tous les messages non lus de cet expéditeur comme lus
+    // Utiliser une requête SQL brute pour éviter les erreurs de typage
     await prisma.$executeRaw`
       UPDATE messages 
       SET is_read = true 

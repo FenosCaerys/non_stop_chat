@@ -47,21 +47,25 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Créer le message
-    // Comme le client Prisma n'a pas été régénéré, nous utilisons une requête SQL directe
-    await prisma.$executeRaw`
-      INSERT INTO messages (id, content, sender_id, recipient_id, is_read, created_at)
-      VALUES (uuid_generate_v4(), ${content}, ${session.user.id}, ${recipientId}, false, NOW())
-    `
+    // Créer le message avec Prisma
+    const message = await prisma.message.create({
+      data: {
+        content,
+        senderId: session.user.id,
+        recipientId,
+        // Le champ isRead sera automatiquement défini à false grâce au @default(false) dans le schéma
+      },
+    })
     
-    // Créer un objet message pour la réponse
+    // Utiliser le message créé par Prisma pour la réponse
     const messageData = {
-      id: 'temp-id', // ID temporaire
-      content,
-      senderId: session.user.id,
-      recipientId,
-      createdAt: new Date(),
-      isRead: false
+      ...message,
+      // Ajouter explicitement les propriétés pour éviter les erreurs TypeScript
+      id: message.id,
+      content: message.content,
+      senderId: message.senderId,
+      recipientId: message.recipientId,
+      createdAt: message.createdAt
     }
 
     return NextResponse.json(
