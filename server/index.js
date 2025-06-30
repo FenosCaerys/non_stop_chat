@@ -31,17 +31,22 @@ io.on('connection', (socket) => {
 
   // Écouter les nouveaux messages
   socket.on('new_message', (data) => {
-    const { senderId, recipientId } = data;
+    const { senderId, recipientId, message } = data;
     
     // Vérifier si le destinataire est connecté
     const recipientSocketId = userSockets.get(recipientId);
     
     if (recipientSocketId) {
-      // Envoyer une notification au destinataire
+      // Envoyer le message complet au destinataire
       io.to(recipientSocketId).emit('receive_message', {
         senderId,
-        recipientId
+        recipientId,
+        message
       });
+      
+      console.log(`Message envoyé de ${senderId} à ${recipientId}`);
+    } else {
+      console.log(`Destinataire ${recipientId} non connecté`);
     }
   });
 

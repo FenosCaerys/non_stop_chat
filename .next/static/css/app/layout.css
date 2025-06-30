@@ -659,11 +659,11 @@ video {
 .w-full {
   width: 100%;
 }
-.max-w-\[70\%\] {
-  max-width: 70%;
-}
 .max-w-\[200px\] {
   max-width: 200px;
+}
+.max-w-\[70\%\] {
+  max-width: 70%;
 }
 .flex-1 {
   flex: 1 1 0%;
@@ -871,14 +871,14 @@ video {
   font-size: 0.75rem;
   line-height: 1rem;
 }
+.font-bold {
+  font-weight: 700;
+}
 .font-medium {
   font-weight: 500;
 }
 .font-semibold {
   font-weight: 600;
-}
-.font-bold {
-  font-weight: 700;
 }
 .text-gray-200 {
   --tw-text-opacity: 1;

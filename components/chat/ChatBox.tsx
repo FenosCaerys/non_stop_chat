@@ -79,18 +79,30 @@ export default React.forwardRef(function ChatBox(
   useEffect(() => {
     // Écouter les nouveaux messages via socket.io
     if (socket) {
-      const handleNewMessage = () => {
-        // Rafraîchir les messages
-        fetchLatestMessages()
+      const handleNewMessage = (data: any) => {
+        // Vérifier si le message est pour cette conversation
+        if (
+          (data.senderId === recipientId && data.recipientId === currentUserId) ||
+          (data.senderId === currentUserId && data.recipientId === recipientId)
+        ) {
+          console.log('Nouveau message reçu:', data);
+          // Rafraîchir les messages immédiatement
+          fetchLatestMessages();
+          
+          // Si le message vient du destinataire, le marquer comme lu
+          if (data.senderId === recipientId) {
+            markMessagesAsRead();
+          }
+        }
       }
 
-      socket.on('receive_message', handleNewMessage)
+      socket.on('receive_message', handleNewMessage);
 
       return () => {
-        socket.off('receive_message', handleNewMessage)
+        socket.off('receive_message', handleNewMessage);
       }
     }
-  }, [socket, recipientId])
+  }, [socket, recipientId, currentUserId])
   
   // Défiler vers le bas lorsque les messages changent
   useEffect(() => {

@@ -104,11 +104,15 @@ export default function ChatPage({ params }: ChatPageProps) {
         throw new Error('Erreur lors de l\'envoi du message')
       }
 
+      // Récupérer les données du message créé
+      const messageData = await response.json();
+      
       // Émettre l'événement de nouveau message via socket.io
       if (socket && isConnected) {
         socket.emit('new_message', {
           senderId: session.user.id,
           recipientId: recipient.id,
+          message: messageData.data // Transmettre le contenu complet du message
         })
       }
       
