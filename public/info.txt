@@ -221,5 +221,17 @@ Les images de profil sont stockées dans le système de fichiers local sous `/pu
 - Recherche d'utilisateurs
 - Affichage des messages non lus
 
+## ÉVOLUTIONS FUTURES - VERSION V2
+
+La version v2 de NonStopChat prévoit plusieurs améliorations majeures, dont la plus importante est l'intégration d'une conversation avec l'IA. Cette fonctionnalité permettra aux utilisateurs d'interagir avec un assistant virtuel intelligent qui pourra :
+
+- Répondre aux questions fréquentes des utilisateurs
+- Suggérer des connexions pertinentes entre influenceurs
+- Fournir des conseils sur les tendances du marché et les stratégies de contenu
+- Faciliter la recherche de collaborateurs potentiels basée sur les intérêts et compétences
+- Offrir une assistance personnalisée 24/7 aux créateurs de contenu
+
+Cette intégration d'IA représente une évolution stratégique pour la plateforme SNOW, renforçant sa proposition de valeur pour les influenceurs et créateurs de contenu en leur offrant des outils intelligents pour optimiser leur présence et leurs collaborations.
+
 ## CONCLUSION
-NonStopChat est une application de messagerie moderne et complète qui utilise les meilleures pratiques de développement web. Son architecture modulaire et sa séparation des préoccupations permettent une maintenance facile et des extensions futures.
+NonStopChat est une application de messagerie moderne et complète qui utilise les meilleures pratiques de développement web. Son architecture modulaire et sa séparation des préoccupations permettent une maintenance facile et des extensions futures, notamment l'intégration prévue de fonctionnalités d'IA dans la version v2.
