@@ -5,5 +5,6 @@
   "/api/users/route": "app/api/users/route.js",
   "/api/messages/last/route": "app/api/messages/last/route.js",
   "/chat/[userId]/page": "app/chat/[userId]/page.js",
-  "/api/auth/[...nextauth]/route": "app/api/auth/[...nextauth]/route.js"
+  "/api/auth/[...nextauth]/route": "app/api/auth/[...nextauth]/route.js",
+  "/api/users/[id]/status/route": "app/api/users/[id]/status/route.js"
 }
