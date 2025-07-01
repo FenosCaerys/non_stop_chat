@@ -1,8 +1,26 @@
 # NONSTOP CHAT - DESCRIPTION FONCTIONNELLE COMPLÈTE
 
+## CONTEXTE DU PROJET
+
+NonStopChat est une application développée pour "Solution NOW" (alias SNOW), dans le cadre d'un projet spécifique de la branche Snow Digital de l'entreprise. Cette startup a confié la réalisation de cette plateforme avec l'objectif de réunir les influenceurs et promouvoir leur collaboration au sein d'un écosystème numérique dédié.
+
 ## RÉSUMÉ DE L'APPLICATION
 
 NonStopChat est une application de messagerie instantanée en temps réel qui permet aux utilisateurs de communiquer entre eux via des messages textuels. L'application offre une interface utilisateur moderne et réactive, avec des fonctionnalités de chat en temps réel grâce à Socket.io. Elle est construite avec Next.js 14, utilise Prisma comme ORM pour interagir avec une base de données PostgreSQL, et implémente un système d'authentification complet avec NextAuth.js.
+
+### Particularité clé : Accès direct à tous les utilisateurs
+
+La particularité distinctive de NonStopChat est que tous les utilisateurs ont immédiatement accès à la liste complète des autres utilisateurs de l'application dès leur connexion. Contrairement aux plateformes traditionnelles qui nécessitent des recherches ou des demandes de connexion, NonStopChat favorise une découverte instantanée et une communication directe entre tous les membres.
+
+Cette approche est particulièrement adaptée pour un réseau d'influenceurs, de modèles et d'artistes, offrant plusieurs avantages stratégiques :
+
+- **Visibilité immédiate** : Les créateurs de contenu bénéficient d'une exposition instantanée auprès de tous les membres du réseau
+- **Networking facilité** : Suppression des barrières à la communication entre professionnels créatifs
+- **Collaborations spontanées** : Possibilité de contacter directement d'autres artistes pour des projets communs
+- **Communauté soudée** : Développement d'un sentiment d'appartenance à un groupe exclusif
+- **Découverte de talents** : Les nouveaux artistes peuvent être immédiatement repérés par des influenceurs établis
+- **Efficacité professionnelle** : Communication directe sans intermédiaires pour les opportunités professionnelles
+- **Transparence** : Visibilité complète de l'écosystème créatif au sein de la plateforme
 
 ## FONCTIONNALITÉS PRINCIPALES
 
