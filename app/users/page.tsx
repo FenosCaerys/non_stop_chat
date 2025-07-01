@@ -113,7 +113,7 @@ export default function Users() {
           </div>
         </div>
 
-        <UsersList currentUserId={session?.user?.id || ''} />
+        <UsersList currentUserId={session?.user?.id || ''} searchTerm={searchTerm} />
       </section>
     </div>
   )

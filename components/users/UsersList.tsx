@@ -20,12 +20,12 @@ interface LastMessage {
   is_read: boolean
 }
 
-export default function UsersList({ currentUserId }: { currentUserId: string }) {
+export default function UsersList({ currentUserId, searchTerm = '' }: { currentUserId: string, searchTerm?: string }) {
   const [users, setUsers] = useState<User[]>([])
   const [lastMessages, setLastMessages] = useState<Record<string, LastMessage>>({}) 
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [searchTerm, setSearchTerm] = useState('')
+  // searchTerm est maintenant reçu comme prop
 
   useEffect(() => {
     const fetchUsers = async () => {
