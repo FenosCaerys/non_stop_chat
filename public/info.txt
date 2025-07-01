@@ -1,0 +1,225 @@
+# ANALYSE DÉTAILLÉE DE L'APPLICATION NONSTOP CHAT
+
+## PRÉSENTATION GÉNÉRALE
+NonStopChat est une application de messagerie en temps réel développée avec Next.js 14, utilisant une architecture moderne et des technologies avancées pour offrir une expérience de chat fluide et réactive.
+
+## STRUCTURE DU PROJET
+L'application suit l'architecture App Router de Next.js avec une organisation claire des dossiers :
+
+```
+NonStopChat-Next/
+├── app/                    # Dossier principal des routes Next.js
+│   ├── api/                # Routes API
+│   ├── chat/               # Pages de chat
+│   ├── login/              # Page de connexion
+│   ├── users/              # Page de liste des utilisateurs
+│   ├── globals.css         # Styles globaux
+│   ├── layout.tsx          # Layout principal
+│   └── page.tsx            # Page d'accueil (inscription)
+├── components/             # Composants React réutilisables
+│   ├── auth/               # Composants d'authentification
+│   ├── chat/               # Composants de chat
+│   ├── providers/          # Providers React
+│   └── users/              # Composants liés aux utilisateurs
+├── lib/                    # Bibliothèques et utilitaires
+│   └── prisma.ts           # Configuration de Prisma
+├── prisma/                 # Configuration de la base de données
+│   └── schema.prisma       # Schéma Prisma
+├── public/                 # Fichiers statiques
+│   └── uploads/            # Images téléchargées par les utilisateurs
+├── server/                 # Serveur Socket.io séparé
+│   ├── index.js            # Configuration du serveur Socket.io
+│   └── package.json        # Dépendances du serveur
+├── types/                  # Définitions de types TypeScript
+│   └── next-auth.d.ts      # Types pour NextAuth
+├── next.config.js          # Configuration Next.js
+├── package.json            # Dépendances principales
+└── server.js               # Serveur personnalisé Next.js avec Socket.io
+```
+
+## TECHNOLOGIES UTILISÉES
+
+### Frontend
+- **Next.js 14**: Framework React avec App Router pour le routage et le rendu côté serveur
+- **React 18**: Bibliothèque UI avec hooks et composants fonctionnels
+- **TailwindCSS**: Framework CSS utilitaire pour le stylage
+- **Socket.io-client**: Client pour la communication en temps réel
+- **React Hook Form**: Gestion des formulaires avec validation
+- **Zod**: Validation de schémas pour les formulaires et les API
+- **Lucide React**: Icônes SVG modernes
+- **Zustand**: Gestion d'état global (configuré mais peu utilisé)
+
+### Backend
+- **Next.js API Routes**: API REST pour les opérations CRUD
+- **Socket.io**: Communication en temps réel pour les messages
+- **NextAuth.js**: Système d'authentification complet
+- **Prisma**: ORM pour l'accès à la base de données
+- **bcryptjs**: Hachage sécurisé des mots de passe
+- **Express**: Serveur pour Socket.io séparé
+
+### Base de données
+- **PostgreSQL**: Base de données relationnelle (via Prisma)
+
+## SCHÉMA DE BASE DE DONNÉES
+Le schéma Prisma définit deux modèles principaux :
+
+### Modèle User
+```prisma
+model User {
+  id        String   @id @default(uuid())
+  firstName String   @map("first_name")
+  lastName  String   @map("last_name")
+  email     String   @unique
+  password  String
+  image     String?
+  status    String   @default("offline")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  sentMessages     Message[] @relation("SentMessages")
+  receivedMessages Message[] @relation("ReceivedMessages")
+
+  @@map("users")
+}
+```
+
+### Modèle Message
+```prisma
+model Message {
+  id           String   @id @default(uuid())
+  content      String
+  createdAt    DateTime @default(now()) @map("created_at")
+  senderId     String   @map("sender_id")
+  recipientId  String   @map("recipient_id")
+  isRead       Boolean  @default(false) @map("is_read")
+
+  sender       User     @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  recipient    User     @relation("ReceivedMessages", fields: [recipientId], references: [id], onDelete: Cascade)
+
+  @@map("messages")
+}
+```
+
+## SYSTÈME D'AUTHENTIFICATION
+L'application utilise NextAuth.js avec un provider de type Credentials :
+
+- **Inscription** : Route `/api/auth/signup` qui :
+  - Valide les données avec Zod
+  - Hache le mot de passe avec bcryptjs
+  - Stocke l'image de profil dans `/public/uploads`
+  - Crée un nouvel utilisateur dans la base de données
+
+- **Connexion** : Route NextAuth standard qui :
+  - Vérifie les identifiants avec la base de données
+  - Met à jour le statut utilisateur à "online"
+  - Génère un token JWT avec les informations utilisateur
+
+- **Session** : Utilise la stratégie JWT pour maintenir la session
+
+## COMMUNICATION EN TEMPS RÉEL
+L'application utilise Socket.io pour la communication en temps réel, avec deux configurations :
+
+### 1. Serveur Socket.io intégré (server.js)
+Intégré au serveur Next.js principal, il :
+- Intercepte les requêtes HTTP
+- Gère les connexions Socket.io
+- Associe les ID utilisateurs aux sockets
+- Transmet les notifications de messages
+
+### 2. Serveur Socket.io séparé (server/index.js)
+Serveur Express dédié qui :
+- Fonctionne sur un port différent (3001 par défaut)
+- Gère les connexions Socket.io avec CORS
+- Associe les ID utilisateurs aux sockets
+- Transmet les messages complets entre utilisateurs
+
+## ROUTES API
+
+### Authentification
+- `POST /api/auth/signup` : Inscription d'un nouvel utilisateur
+- `POST /api/auth/[...nextauth]` : Routes NextAuth pour la connexion/déconnexion
+
+### Utilisateurs
+- `GET /api/users` : Liste tous les utilisateurs
+- `GET /api/users/[id]` : Récupère un utilisateur spécifique
+- `PUT /api/users/[id]/status` : Met à jour le statut d'un utilisateur
+
+### Messages
+- `POST /api/messages` : Envoie un nouveau message
+- `GET /api/messages` : Récupère les messages entre deux utilisateurs
+- `GET /api/messages/last` : Récupère le dernier message pour chaque conversation
+- `POST /api/messages/read` : Marque les messages comme lus
+
+## COMPOSANTS PRINCIPAUX
+
+### Authentification
+- `LoginForm` : Formulaire de connexion avec validation
+- `SignupForm` : Formulaire d'inscription avec téléchargement d'image
+
+### Chat
+- `ChatBox` : Affiche et gère les messages entre utilisateurs
+- `UsersList` : Liste des utilisateurs avec statut et derniers messages
+
+### Providers
+- `AuthProvider` : Fournit le contexte d'authentification à l'application
+
+## FLUX DE DONNÉES
+
+### Envoi de message
+1. L'utilisateur envoie un message via le formulaire
+2. Le client fait une requête POST à `/api/messages`
+3. Le serveur enregistre le message dans la base de données
+4. Le client émet un événement Socket.io `new_message`
+5. Le serveur Socket.io reçoit l'événement et le transmet au destinataire
+6. Le destinataire reçoit l'événement `receive_message` et met à jour l'interface
+
+### Mise à jour en temps réel
+- Les statuts utilisateurs sont mis à jour lors de la connexion/déconnexion
+- Les messages sont marqués comme lus automatiquement
+- La liste des utilisateurs est actualisée périodiquement (polling)
+- Les derniers messages sont récupérés périodiquement
+
+## CONFIGURATION ENVIRONNEMENT
+L'application nécessite les variables d'environnement suivantes (à définir dans `.env`) :
+
+```
+# Base de données
+DATABASE_URL="postgresql://username:password@localhost:5432/nonstop_chat"
+
+# NextAuth
+NEXTAUTH_SECRET="votre_secret_nextauth"
+NEXTAUTH_URL="http://localhost:3000"
+
+# Socket.io
+NEXT_PUBLIC_SOCKET_URL="http://localhost:3001"
+```
+
+## SCRIPTS DISPONIBLES
+- `npm run dev` : Lance le serveur de développement
+- `npm run build` : Compile l'application pour la production
+- `npm run start` : Lance l'application en mode production
+- `npm run postinstall` : Génère le client Prisma après installation
+
+## ARCHITECTURE TECHNIQUE
+
+### Serveur personnalisé
+L'application utilise un serveur personnalisé (`server.js`) au lieu du serveur Next.js standard pour intégrer Socket.io.
+
+### Gestion des images
+Les images de profil sont stockées dans le système de fichiers local sous `/public/uploads` avec des noms de fichiers uniques basés sur des timestamps.
+
+### Sécurité
+- Mots de passe hachés avec bcryptjs
+- Validation des données avec Zod
+- Protection des routes API avec NextAuth
+- Vérification des sessions côté serveur
+
+### Interface utilisateur
+- Design responsive avec TailwindCSS
+- Indicateurs de statut en temps réel
+- Notifications de nouveaux messages
+- Recherche d'utilisateurs
+- Affichage des messages non lus
+
+## CONCLUSION
+NonStopChat est une application de messagerie moderne et complète qui utilise les meilleures pratiques de développement web. Son architecture modulaire et sa séparation des préoccupations permettent une maintenance facile et des extensions futures.
