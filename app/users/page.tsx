@@ -6,6 +6,7 @@ import { useSession, signOut } from 'next-auth/react'
 import { Search, LogOut } from 'lucide-react'
 import Image from 'next/image'
 import UsersList from '@/components/users/UsersList'
+import DebugSession from '@/components/DebugSession'
 
 export default function Users() {
   const router = useRouter()
@@ -56,19 +57,22 @@ export default function Users() {
 
   return (
     <div className="wrapper">
+      <DebugSession />
       <section className="p-6">
         <header className="flex items-center justify-between pb-5 border-b border-gray-200">
           <div className="flex items-center">
-            {session?.user?.image && (
-              <div className="relative h-12 w-12">
-                <Image
-                  src={session.user.image}
-                  alt={`${session.user.firstName} ${session.user.lastName}`}
-                  fill
-                  className="rounded-full object-cover"
-                />
-              </div>
-            )}
+            <div className="relative h-12 w-12">
+              <Image
+                src={session?.user?.image || '/default-avatar.svg'}
+                alt={`${session?.user?.firstName} ${session?.user?.lastName}`}
+                fill
+                className="rounded-full object-cover"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.src = '/default-avatar.svg';
+                }}
+              />
+            </div>
             <div className="ml-5">
               <h2 className="font-medium text-lg">
                 {session?.user?.firstName} {session?.user?.lastName}

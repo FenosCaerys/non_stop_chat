@@ -128,10 +128,14 @@ export default function UsersList({ currentUserId, searchTerm = '' }: { currentU
           <div className="flex items-center">
             <div className="relative h-10 w-10">
               <Image
-                src={user.image || '/placeholder.png'}
+                src={user.image || '/default-avatar.svg'}
                 alt={`${user.firstName} ${user.lastName}`}
                 fill
                 className="rounded-full object-cover"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.src = '/default-avatar.svg';
+                }}
               />
             </div>
             <div className="ml-5 max-w-[200px]">

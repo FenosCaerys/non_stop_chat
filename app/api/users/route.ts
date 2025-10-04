@@ -31,12 +31,20 @@ export async function GET(request: NextRequest) {
         lastName: true,
         email: true,
         image: true,
+        status: true,
         createdAt: true,
       },
       orderBy: {
         firstName: 'asc'
       }
     })
+
+    // Debug: Log des images pour voir ce qui est retourné
+    console.log('Users avec images:', users.map(u => ({ 
+      name: `${u.firstName} ${u.lastName}`, 
+      image: u.image,
+      hasImage: !!u.image 
+    })))
 
     return NextResponse.json({ users })
   } catch (error) {
