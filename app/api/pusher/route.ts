@@ -3,6 +3,9 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "../auth/[...nextauth]/route"
 import { pusherServer, getChatChannelName, PUSHER_EVENTS } from "@/lib/pusher"
 
+// Forcer le rendu dynamique pour cette route
+export const dynamic = 'force-dynamic'
+
 export async function POST(request: NextRequest) {
   try {
     // Vérifier l'authentification

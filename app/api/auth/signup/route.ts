@@ -4,6 +4,9 @@ import { prisma } from "@/lib/prisma"
 import { uploadToCloudinary } from "@/lib/cloudinary"
 import { z } from "zod"
 
+// Forcer le rendu dynamique pour cette route
+export const dynamic = 'force-dynamic'
+
 const signupSchema = z.object({
   firstName: z.string().min(1, "Le nom est requis"),
   lastName: z.string().min(1, "Le prénom est requis"),
@@ -88,8 +91,17 @@ export async function POST(request: NextRequest) {
       imageUrl = uploadResult.secure_url
     } catch (error) {
       console.error("Erreur lors de l'upload de l'image:", error)
+      
+      // Vérifier si les variables Cloudinary sont configurées
+      if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
+        return NextResponse.json(
+          { message: "Configuration Cloudinary manquante. Vérifiez vos variables d'environnement." },
+          { status: 500 }
+        )
+      }
+      
       return NextResponse.json(
-        { message: "Erreur lors de l'enregistrement de l'image" },
+        { message: `Erreur lors de l'enregistrement de l'image: ${error instanceof Error ? error.message : 'Erreur inconnue'}` },
         { status: 500 }
       )
     }
@@ -124,8 +136,17 @@ export async function POST(request: NextRequest) {
     )
   } catch (error) {
     console.error("Erreur lors de l'inscription:", error)
+    
+    // Vérifier si la base de données est accessible
+    if (!process.env.DATABASE_URL) {
+      return NextResponse.json(
+        { message: "Configuration de base de données manquante" },
+        { status: 500 }
+      )
+    }
+    
     return NextResponse.json(
-      { message: "Une erreur est survenue lors de l'inscription" },
+      { message: `Une erreur est survenue lors de l'inscription: ${error instanceof Error ? error.message : 'Erreur inconnue'}` },
       { status: 500 }
     )
   }

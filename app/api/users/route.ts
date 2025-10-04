@@ -3,6 +3,9 @@ import { prisma } from "@/lib/prisma"
 import { getServerSession } from "next-auth"
 import { authOptions } from "../auth/[...nextauth]/route"
 
+// Forcer le rendu dynamique pour cette route
+export const dynamic = 'force-dynamic'
+
 export async function GET(request: NextRequest) {
   try {
     // Vérifier si l'utilisateur est authentifié

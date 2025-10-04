@@ -5,6 +5,9 @@ import { compare } from "bcryptjs"
 import { prisma } from "@/lib/prisma"
 import NextAuth from "next-auth/next"
 
+// Forcer le rendu dynamique pour cette route
+export const dynamic = 'force-dynamic'
+
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
   providers: [

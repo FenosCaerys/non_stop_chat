@@ -3,6 +3,9 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "../auth/[...nextauth]/route"
 import { uploadToCloudinary } from "@/lib/cloudinary"
 
+// Forcer le rendu dynamique pour cette route
+export const dynamic = 'force-dynamic'
+
 export async function POST(request: NextRequest) {
   try {
     // Vérifier l'authentification

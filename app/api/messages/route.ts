@@ -5,6 +5,9 @@ import { authOptions } from "../auth/[...nextauth]/route"
 import { pusherServer, getChatChannelName, PUSHER_EVENTS } from "@/lib/pusher"
 import { z } from "zod"
 
+// Forcer le rendu dynamique pour cette route
+export const dynamic = 'force-dynamic'
+
 // Schéma de validation pour la création de message
 const messageSchema = z.object({
   content: z.string().min(1, "Le contenu du message est requis"),
