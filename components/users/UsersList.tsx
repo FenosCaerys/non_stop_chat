@@ -42,7 +42,17 @@ export default function UsersList({ currentUserId, searchTerm = '' }: { currentU
         })
         
         if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}))
+          let errorData: { message?: string } = {}
+          try {
+            const text = await response.text()
+            if (text) {
+              errorData = JSON.parse(text)
+            }
+          } catch (parseError) {
+            console.error("Erreur parsing JSON:", parseError)
+            errorData = { message: `Erreur ${response.status}` }
+          }
+          
           console.error("Réponse d'erreur:", errorData)
           
           if (response.status === 401) {

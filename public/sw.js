@@ -1,11 +1,11 @@
-const CACHE_NAME = 'non-stop-chat-v1';
+const CACHE_NAME = 'non-stop-chat-v2';
 const urlsToCache = [
   '/',
   '/login',
   '/users',
-  '/static/js/bundle.js',
-  '/static/css/main.css',
-  '/manifest.json'
+  '/manifest.json',
+  '/icons/icon-192x192.png',
+  '/icons/icon-48x48.png'
 ];
 
 // Installation du service worker
@@ -14,7 +14,10 @@ self.addEventListener('install', (event) => {
     caches.open(CACHE_NAME)
       .then((cache) => {
         console.log('Cache ouvert');
-        return cache.addAll(urlsToCache);
+        return cache.addAll(urlsToCache.map(url => new Request(url, { cache: 'reload' })));
+      })
+      .catch((error) => {
+        console.error('Erreur lors de la mise en cache:', error);
       })
   );
 });

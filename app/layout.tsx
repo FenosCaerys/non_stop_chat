@@ -7,6 +7,7 @@ import PWAInstaller from '@/components/PWAInstaller'
 import MessageNotification from '@/components/notifications/MessageNotification'
 import SessionDebug from '@/components/debug/SessionDebug'
 import ImageUploadDebug from '@/components/debug/ImageUploadDebug'
+import ErrorMonitor from '@/components/debug/ErrorMonitor'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -60,6 +61,7 @@ export default function RootLayout({
           <MessageNotification />
           <SessionDebug />
           <ImageUploadDebug />
+          <ErrorMonitor />
           <PWAInstaller />
         </AuthProvider>
       </body>
