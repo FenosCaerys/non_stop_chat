@@ -61,8 +61,16 @@ export async function POST(request: NextRequest) {
 
     // Upload de l'image vers Cloudinary
     let imageUrl = ""
+    console.log('📸 Vérification du fichier image:', {
+      hasFile: !!imageFile,
+      fileName: imageFile?.name,
+      fileSize: imageFile?.size,
+      fileType: imageFile?.type
+    })
+
     if (imageFile && imageFile.size > 0) {
       try {
+        console.log('🚀 Début upload Cloudinary...')
         const bytes = await imageFile.arrayBuffer()
         const buffer = Buffer.from(bytes)
         
@@ -73,17 +81,25 @@ export async function POST(request: NextRequest) {
               folder: "non-stop-chat/users",
             },
             (error, result) => {
-              if (error) reject(error)
-              else resolve(result)
+              if (error) {
+                console.error('❌ Erreur Cloudinary:', error)
+                reject(error)
+              } else {
+                console.log('✅ Upload Cloudinary réussi:', result?.secure_url)
+                resolve(result)
+              }
             }
           ).end(buffer)
         }) as any
 
         imageUrl = uploadResult.secure_url
+        console.log('🎯 URL finale de l\'image:', imageUrl)
       } catch (uploadError) {
-        console.error("Erreur upload image:", uploadError)
+        console.error("❌ Erreur upload image:", uploadError)
         // Continuer sans image si l'upload échoue
       }
+    } else {
+      console.log('⚠️ Aucun fichier image fourni ou fichier vide')
     }
 
     // Hasher le mot de passe
@@ -106,6 +122,14 @@ export async function POST(request: NextRequest) {
         image: true,
         createdAt: true,
       }
+    })
+
+    console.log('💾 Utilisateur créé dans la BDD:', {
+      id: user.id,
+      name: `${user.firstName} ${user.lastName}`,
+      email: user.email,
+      imageInDB: user.image,
+      hasImageInDB: !!user.image
     })
 
     return NextResponse.json(

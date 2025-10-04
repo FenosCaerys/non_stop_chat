@@ -41,6 +41,16 @@ export default function UsersList({ currentUserId, searchTerm = '' }: { currentU
         
         const data = await response.json()
         console.log('Utilisateurs récupérés:', data.users)
+        
+        // Debug spécifique pour les images
+        data.users.forEach((user: User) => {
+          console.log(`👤 ${user.firstName} ${user.lastName}:`, {
+            hasImage: !!user.image,
+            imageUrl: user.image,
+            imageLength: user.image?.length || 0
+          })
+        })
+        
         setUsers(data.users)
         setError(null)
       } catch (error) {
@@ -133,8 +143,14 @@ export default function UsersList({ currentUserId, searchTerm = '' }: { currentU
                 fill
                 className="rounded-full object-cover"
                 onError={(e) => {
+                  console.log(`❌ Erreur chargement image pour ${user.firstName}:`, user.image);
                   const target = e.target as HTMLImageElement;
                   target.src = '/default-avatar.svg';
+                }}
+                onLoad={() => {
+                  if (user.image) {
+                    console.log(`✅ Image chargée pour ${user.firstName}:`, user.image);
+                  }
                 }}
               />
             </div>

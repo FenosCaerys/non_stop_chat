@@ -57,6 +57,23 @@ export const authOptions: NextAuthOptions = {
         token.firstName = user.firstName
         token.lastName = user.lastName
         token.image = user.image
+      } else if (token.id) {
+        // Récupérer les données utilisateur fraîches à chaque requête
+        const freshUser = await prisma.user.findUnique({
+          where: { id: token.id as string },
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            image: true,
+          }
+        })
+        
+        if (freshUser) {
+          token.firstName = freshUser.firstName
+          token.lastName = freshUser.lastName
+          token.image = freshUser.image || ""
+        }
       }
       return token
     },
