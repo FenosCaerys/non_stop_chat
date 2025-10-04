@@ -1,4 +1,4 @@
-// File: C:\Users\ADMIN\Documents\GitHub\NonStopChat-Next\app\page.tsx
+// File: C:\Users\VICTUS\Documents\GitHub\non_stop_chat\app\page.tsx
 import * as entry from '../../../app/page.js'
 import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
 

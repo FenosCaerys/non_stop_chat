@@ -1,4 +1,4 @@
-// File: C:\Users\ADMIN\Documents\GitHub\NonStopChat-Next\app\api\messages\last\route.ts
+// File: C:\Users\VICTUS\Documents\GitHub\non_stop_chat\app\api\messages\last\route.ts
 import * as entry from '../../../../../../app/api/messages/last/route.js'
 import type { NextRequest } from 'next/server.js'
 

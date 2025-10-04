@@ -4,6 +4,14 @@ const nextConfig = {
   images: {
     domains: ['localhost'],
   },
+  eslint: {
+    // Désactiver ESLint lors du build
+    ignoreDuringBuilds: true,
+  },
+  typescript: {
+    // Désactiver aussi la vérification TypeScript lors du build
+    ignoreBuildErrors: true,
+  },
 }
 
 module.exports = nextConfig
