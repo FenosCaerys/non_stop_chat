@@ -5,6 +5,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { useUserStatus } from '@/hooks/useUserStatus'
 import UserAvatar from '@/components/ui/UserAvatar'
+import { safeFetch, safeJsonParse } from '@/utils/errorHandler'
 
 interface User {
   id: string
@@ -33,30 +34,15 @@ export default function UsersList({ currentUserId, searchTerm = '' }: { currentU
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        console.log('Récupération des utilisateurs...')
-        const response = await fetch('/api/users', {
-          credentials: 'include',
-          headers: {
-            'Content-Type': 'application/json',
-          }
-        })
+        console.log('🔄 Récupération des utilisateurs...')
+        const response = await safeFetch('/api/users')
         
         if (!response.ok) {
-          let errorData: { message?: string } = {}
-          try {
-            const text = await response.text()
-            if (text) {
-              errorData = JSON.parse(text)
-            }
-          } catch (parseError) {
-            console.error("Erreur parsing JSON:", parseError)
-            errorData = { message: `Erreur ${response.status}` }
-          }
-          
-          console.error("Réponse d'erreur:", errorData)
+          const errorData = await safeJsonParse(response)
+          console.error("❌ Réponse d'erreur:", errorData)
           
           if (response.status === 401) {
-            console.log('❌ Utilisateur non authentifié - redirection vers login')
+            console.log('🔐 Utilisateur non authentifié - redirection vers login')
             window.location.href = '/login'
             return
           }
@@ -64,7 +50,7 @@ export default function UsersList({ currentUserId, searchTerm = '' }: { currentU
           throw new Error(`Erreur ${response.status}: ${errorData.message || 'Erreur lors de la récupération des utilisateurs'}`)
         }
         
-        const data = await response.json()
+        const data = await safeJsonParse(response)
         console.log('Utilisateurs récupérés:', data.users)
         
         // Debug spécifique pour les images
@@ -88,23 +74,19 @@ export default function UsersList({ currentUserId, searchTerm = '' }: { currentU
 
     const fetchLastMessages = async () => {
       try {
-        const response = await fetch('/api/messages/last', {
-          credentials: 'include',
-          headers: {
-            'Content-Type': 'application/json',
-          }
-        })
+        const response = await safeFetch('/api/messages/last')
         
         if (!response.ok) {
           if (response.status === 401) {
-            console.log('❌ Utilisateur non authentifié pour les messages - redirection vers login')
+            console.log('🔐 Utilisateur non authentifié pour les messages - redirection vers login')
             window.location.href = '/login'
             return
           }
-          throw new Error('Erreur lors de la récupération des derniers messages')
+          const errorData = await safeJsonParse(response)
+          throw new Error(`Erreur ${response.status}: ${errorData.message || 'Erreur lors de la récupération des derniers messages'}`)
         }
         
-        const data = await response.json()
+        const data = await safeJsonParse(response)
         
         // Convertir le tableau en objet indexé par ID utilisateur
         const messagesMap: Record<string, LastMessage> = {}
