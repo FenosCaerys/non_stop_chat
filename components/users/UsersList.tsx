@@ -33,11 +33,23 @@ export default function UsersList({ currentUserId, searchTerm = '' }: { currentU
     const fetchUsers = async () => {
       try {
         console.log('Récupération des utilisateurs...')
-        const response = await fetch('/api/users')
+        const response = await fetch('/api/users', {
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+          }
+        })
         
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({}))
           console.error("Réponse d'erreur:", errorData)
+          
+          if (response.status === 401) {
+            console.log('❌ Utilisateur non authentifié - redirection vers login')
+            window.location.href = '/login'
+            return
+          }
+          
           throw new Error(`Erreur ${response.status}: ${errorData.message || 'Erreur lors de la récupération des utilisateurs'}`)
         }
         
@@ -65,9 +77,19 @@ export default function UsersList({ currentUserId, searchTerm = '' }: { currentU
 
     const fetchLastMessages = async () => {
       try {
-        const response = await fetch('/api/messages/last')
+        const response = await fetch('/api/messages/last', {
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+          }
+        })
         
         if (!response.ok) {
+          if (response.status === 401) {
+            console.log('❌ Utilisateur non authentifié pour les messages - redirection vers login')
+            window.location.href = '/login'
+            return
+          }
           throw new Error('Erreur lors de la récupération des derniers messages')
         }
         

@@ -9,9 +9,17 @@ export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
     
+    console.log('Session dans /api/users/heartbeat:', {
+      hasSession: !!session,
+      hasUser: !!session?.user,
+      userId: session?.user?.id,
+      userEmail: session?.user?.email
+    })
+    
     if (!session?.user) {
+      console.log('❌ Accès refusé - Pas de session utilisateur dans heartbeat')
       return NextResponse.json(
-        { message: "Non autorisé" },
+        { message: "Non autorisé - Veuillez vous connecter" },
         { status: 401 }
       )
     }

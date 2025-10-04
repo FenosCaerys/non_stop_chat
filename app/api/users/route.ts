@@ -11,9 +11,17 @@ export async function GET(request: NextRequest) {
     // Vérifier si l'utilisateur est authentifié
     const session = await getServerSession(authOptions)
     
+    console.log('Session dans /api/users:', {
+      hasSession: !!session,
+      hasUser: !!session?.user,
+      userId: session?.user?.id,
+      userEmail: session?.user?.email
+    })
+    
     if (!session?.user) {
+      console.log('❌ Accès refusé - Pas de session utilisateur')
       return NextResponse.json(
-        { message: "Non autorisé" },
+        { message: "Non autorisé - Veuillez vous connecter" },
         { status: 401 }
       )
     }
