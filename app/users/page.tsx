@@ -17,8 +17,19 @@ export default function Users() {
   useEffect(() => {
     if (status === 'unauthenticated') {
       router.push('/login')
+    } else if (status === 'authenticated' && session?.user?.id) {
+      // Mettre l'utilisateur en ligne à la connexion
+      fetch(`/api/users/${session.user.id}/status`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ status: 'online' }),
+      }).catch(error => {
+        console.error('Erreur mise à jour statut online:', error)
+      })
     }
-  }, [status, router])
+  }, [status, router, session?.user?.id])
 
   const handleLogout = async () => {
     // Mettre à jour le statut de l'utilisateur à "offline" avant de se déconnecter

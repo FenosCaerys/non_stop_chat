@@ -11,6 +11,22 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 })
 
+// Vérifier la configuration Cloudinary
+function checkCloudinaryConfig() {
+  const missing = []
+  if (!process.env.CLOUDINARY_CLOUD_NAME) missing.push('CLOUDINARY_CLOUD_NAME')
+  if (!process.env.CLOUDINARY_API_KEY) missing.push('CLOUDINARY_API_KEY')
+  if (!process.env.CLOUDINARY_API_SECRET) missing.push('CLOUDINARY_API_SECRET')
+  
+  if (missing.length > 0) {
+    console.error('❌ Variables Cloudinary manquantes:', missing.join(', '))
+    return false
+  }
+  
+  console.log('✅ Configuration Cloudinary OK')
+  return true
+}
+
 export async function PUT(
   request: NextRequest,
   { params }: { params: { id: string } }
@@ -40,6 +56,14 @@ export async function PUT(
       return NextResponse.json(
         { message: "Aucun fichier image fourni" },
         { status: 400 }
+      )
+    }
+
+    // Vérifier la configuration Cloudinary
+    if (!checkCloudinaryConfig()) {
+      return NextResponse.json(
+        { message: "Configuration Cloudinary manquante" },
+        { status: 500 }
       )
     }
 

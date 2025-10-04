@@ -71,7 +71,10 @@ export async function GET(request: NextRequest) {
 
     const conversations = Array.from(conversationsMap.values())
 
-    return NextResponse.json({ conversations })
+    return NextResponse.json({ 
+      conversations,
+      lastMessages: conversations // Pour compatibilité avec le frontend
+    })
   } catch (error) {
     console.error("Erreur lors de la récupération des derniers messages:", error)
     return NextResponse.json(
