@@ -5,6 +5,7 @@ import Image from 'next/image'
 import { pusherClient, getChatChannelName, PUSHER_EVENTS, PusherMessage } from '@/lib/pusher'
 import { Channel } from 'pusher-js'
 import MessageAttachment from './MessageAttachment'
+import UserAvatar from '@/components/ui/UserAvatar'
 
 interface Message {
   id: string
@@ -22,10 +23,11 @@ interface ChatBoxProps {
   currentUserId: string
   recipientId: string
   recipientImage: string
+  recipientName?: string
 }
 
 export default React.forwardRef(function ChatBox(
-  { currentUserId, recipientId, recipientImage }: ChatBoxProps,
+  { currentUserId, recipientId, recipientImage, recipientName }: ChatBoxProps,
   ref: React.ForwardedRef<{fetchLatestMessages: () => Promise<void>}>
 ) {
   const [messages, setMessages] = useState<Message[]>([])
@@ -221,12 +223,11 @@ export default React.forwardRef(function ChatBox(
           className={`mb-4 ${message.senderId === currentUserId ? 'flex justify-end' : 'flex'}`}
         >
           {message.senderId !== currentUserId && (
-            <div className="relative h-8 w-8 mr-2 flex-shrink-0">
-              <Image
+            <div className="mr-2 flex-shrink-0">
+              <UserAvatar
                 src={recipientImage}
-                alt="Avatar"
-                fill
-                className="rounded-full object-cover"
+                alt={recipientName || "Avatar"}
+                size="sm"
               />
             </div>
           )}

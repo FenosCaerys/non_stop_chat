@@ -10,6 +10,7 @@ import ChatBox from '@/components/chat/ChatBox'
 import FileUpload from '@/components/chat/FileUpload'
 import { useUserStatus } from '@/hooks/useUserStatus'
 import { useHeartbeat } from '@/hooks/useHeartbeat'
+import UserAvatar from '@/components/ui/UserAvatar'
 import { User } from '@prisma/client'
 
 interface ChatPageProps {
@@ -149,14 +150,11 @@ export default function ChatPage({ params }: ChatPageProps) {
           </Link>
           {recipient && (
             <>
-              <div className="relative h-12 w-12">
-                <Image
-                  src={recipient.image || '/placeholder.png'}
-                  alt={`${recipient.firstName} ${recipient.lastName}`}
-                  fill
-                  className="rounded-full object-cover"
-                />
-              </div>
+              <UserAvatar
+                src={recipient.image}
+                alt={`${recipient.firstName} ${recipient.lastName}`}
+                size="lg"
+              />
               <div className="ml-3">
                 <h2 className="font-medium text-lg">
                   {recipient.firstName} {recipient.lastName}
@@ -175,6 +173,7 @@ export default function ChatPage({ params }: ChatPageProps) {
             currentUserId={session.user.id} 
             recipientId={recipient.id} 
             recipientImage={recipient.image || '/placeholder.png'}
+            recipientName={`${recipient.firstName} ${recipient.lastName}`}
           />
         )}
 

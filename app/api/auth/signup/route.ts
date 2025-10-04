@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Upload de l'image vers Cloudinary
+    // Upload de l'image vers Cloudinary ou stockage base64 en fallback
     let imageUrl = ""
     console.log('📸 Vérification du fichier image:', {
       hasFile: !!imageFile,
@@ -69,34 +69,64 @@ export async function POST(request: NextRequest) {
     })
 
     if (imageFile && imageFile.size > 0) {
-      try {
-        console.log('🚀 Début upload Cloudinary...')
-        const bytes = await imageFile.arrayBuffer()
-        const buffer = Buffer.from(bytes)
-        
-        const uploadResult = await new Promise((resolve, reject) => {
-          cloudinary.uploader.upload_stream(
-            {
-              resource_type: "image",
-              folder: "non-stop-chat/users",
-            },
-            (error, result) => {
-              if (error) {
-                console.error('❌ Erreur Cloudinary:', error)
-                reject(error)
-              } else {
-                console.log('✅ Upload Cloudinary réussi:', result?.secure_url)
-                resolve(result)
-              }
-            }
-          ).end(buffer)
-        }) as any
+      // Vérifier si Cloudinary est configuré
+      const hasCloudinaryConfig = process.env.CLOUDINARY_CLOUD_NAME && 
+                                 process.env.CLOUDINARY_API_KEY && 
+                                 process.env.CLOUDINARY_API_SECRET
 
-        imageUrl = uploadResult.secure_url
-        console.log('🎯 URL finale de l\'image:', imageUrl)
-      } catch (uploadError) {
-        console.error("❌ Erreur upload image:", uploadError)
-        // Continuer sans image si l'upload échoue
+      if (hasCloudinaryConfig) {
+        // Essayer Cloudinary d'abord
+        try {
+          console.log('🚀 Début upload Cloudinary...')
+          const bytes = await imageFile.arrayBuffer()
+          const buffer = Buffer.from(bytes)
+          
+          const uploadResult = await new Promise((resolve, reject) => {
+            cloudinary.uploader.upload_stream(
+              {
+                resource_type: "image",
+                folder: "non-stop-chat/users",
+              },
+              (error, result) => {
+                if (error) {
+                  console.error('❌ Erreur Cloudinary:', error)
+                  reject(error)
+                } else {
+                  console.log('✅ Upload Cloudinary réussi:', result?.secure_url)
+                  resolve(result)
+                }
+              }
+            ).end(buffer)
+          }) as any
+
+          imageUrl = uploadResult.secure_url
+          console.log('🎯 URL finale de l\'image (Cloudinary):', imageUrl)
+        } catch (uploadError) {
+          console.error("❌ Erreur upload Cloudinary:", uploadError)
+          console.log("🔄 Fallback vers stockage base64...")
+          
+          // Fallback vers base64
+          try {
+            const bytes = await imageFile.arrayBuffer()
+            const buffer = Buffer.from(bytes)
+            imageUrl = `data:${imageFile.type};base64,${buffer.toString('base64')}`
+            console.log('🎯 URL finale de l\'image (base64):', imageUrl.substring(0, 50) + '...')
+          } catch (base64Error) {
+            console.error("❌ Erreur conversion base64:", base64Error)
+          }
+        }
+      } else {
+        // Pas de Cloudinary configuré, utiliser base64 directement
+        console.log('⚠️ Cloudinary non configuré, utilisation du stockage base64')
+        
+        try {
+          const bytes = await imageFile.arrayBuffer()
+          const buffer = Buffer.from(bytes)
+          imageUrl = `data:${imageFile.type};base64,${buffer.toString('base64')}`
+          console.log('🎯 URL finale de l\'image (base64):', imageUrl.substring(0, 50) + '...')
+        } catch (base64Error) {
+          console.error("❌ Erreur conversion base64:", base64Error)
+        }
       }
     } else {
       console.log('⚠️ Aucun fichier image fourni ou fichier vide')

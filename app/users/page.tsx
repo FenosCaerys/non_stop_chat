@@ -7,6 +7,7 @@ import { Search, LogOut } from 'lucide-react'
 import Image from 'next/image'
 import UsersList from '@/components/users/UsersList'
 import UpdateProfileImage from '@/components/UpdateProfileImage'
+import UserAvatar from '@/components/ui/UserAvatar'
 import { useHeartbeat } from '@/hooks/useHeartbeat'
 
 export default function Users() {
@@ -75,16 +76,12 @@ export default function Users() {
       <section className="p-6 pt-10">
         <header className="flex items-center justify-between pb-5 border-b border-gray-200">
           <div className="flex items-center">
-            <div className="relative h-12 w-12 group">
-              <Image
-                src={session?.user?.image || '/default-avatar.svg'}
+            <div className="relative group">
+              <UserAvatar
+                src={session?.user?.image}
                 alt={`${session?.user?.firstName} ${session?.user?.lastName}`}
-                fill
-                className="rounded-full object-cover transition-all duration-200 group-hover:brightness-75"
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement;
-                  target.src = '/default-avatar.svg';
-                }}
+                size="lg"
+                className="transition-all duration-200 group-hover:brightness-75"
               />
               <UpdateProfileImage />
               

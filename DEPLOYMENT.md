@@ -24,6 +24,18 @@
    - Évitement des rechargements inutiles
    - Cache optimisé pour les requêtes
 
+5. **✅ Problèmes d'images de profil (NOUVEAU)**
+   - Erreur 500 sur l'upload d'image corrigée
+   - Système de fallback automatique Base64 si Cloudinary échoue
+   - Composant `UserAvatar` robuste avec gestion d'erreurs
+   - Images d'inscription et de mise à jour fonctionnelles
+   - Affichage d'initiales si pas d'image disponible
+
+6. **✅ Erreurs d'authentification 401 (NOUVEAU)**
+   - Middleware d'authentification corrigé
+   - Gestion des sessions améliorée
+   - Debugging des routes API ajouté
+
 ## 🛠️ Nouvelles Fonctionnalités
 
 ### Hooks Personnalisés

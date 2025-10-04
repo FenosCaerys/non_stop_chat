@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useUserStatus } from '@/hooks/useUserStatus'
+import UserAvatar from '@/components/ui/UserAvatar'
 
 interface User {
   id: string
@@ -160,24 +161,11 @@ export default function UsersList({ currentUserId, searchTerm = '' }: { currentU
           className="flex items-center justify-between py-3 border-b border-gray-100 hover:bg-gray-50 transition-colors"
         >
           <div className="flex items-center">
-            <div className="relative h-10 w-10">
-              <Image
-                src={user.image || '/default-avatar.svg'}
-                alt={`${user.firstName} ${user.lastName}`}
-                fill
-                className="rounded-full object-cover"
-                onError={(e) => {
-                  console.log(`❌ Erreur chargement image pour ${user.firstName}:`, user.image);
-                  const target = e.target as HTMLImageElement;
-                  target.src = '/default-avatar.svg';
-                }}
-                onLoad={() => {
-                  if (user.image) {
-                    console.log(`✅ Image chargée pour ${user.firstName}:`, user.image);
-                  }
-                }}
-              />
-            </div>
+            <UserAvatar
+              src={user.image}
+              alt={`${user.firstName} ${user.lastName}`}
+              size="md"
+            />
             <div className="ml-5 max-w-[200px]">
               <h3 className="font-medium">
                 {user.firstName} {user.lastName}
