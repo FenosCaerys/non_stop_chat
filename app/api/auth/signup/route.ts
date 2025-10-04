@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { hash } from "bcryptjs"
 import { prisma } from "@/lib/prisma"
-import { writeFile, mkdir } from "fs/promises"
-import { existsSync } from "fs"
-import path from "path"
+import { uploadToCloudinary } from "@/lib/cloudinary"
 import { z } from "zod"
 
 const signupSchema = z.object({
@@ -46,7 +44,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Traiter l'image
+    // Traiter l'image avec Cloudinary
     const image = formData.get("image") as File
     if (!image) {
       return NextResponse.json(
@@ -55,29 +53,41 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Créer un nom de fichier unique
-    const uniqueId = Date.now().toString()
-    const fileExtension = image.name.split(".").pop()
-    const fileName = `${uniqueId}.${fileExtension}`
-    
-    // Créer le dossier uploads s'il n'existe pas
-    const uploadDir = path.join(process.cwd(), "public", "uploads")
+    let imageUrl = ""
     
     try {
-      // Vérifier si le dossier uploads existe, sinon le créer
-      if (!existsSync(uploadDir)) {
-        await mkdir(uploadDir, { recursive: true })
-        console.log(`Dossier créé: ${uploadDir}`)
+      // Vérifier la taille du fichier (max 5MB pour les avatars)
+      const maxSize = 5 * 1024 * 1024 // 5MB
+      if (image.size > maxSize) {
+        return NextResponse.json(
+          { message: "L'image est trop volumineuse (max 5MB)" },
+          { status: 400 }
+        )
+      }
+
+      // Vérifier le type de fichier
+      const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
+      if (!allowedTypes.includes(image.type)) {
+        return NextResponse.json(
+          { message: "Type d'image non autorisé (JPEG, PNG, GIF, WebP uniquement)" },
+          { status: 400 }
+        )
       }
       
       // Lire le contenu de l'image
       const bytes = await image.arrayBuffer()
       const buffer = Buffer.from(bytes)
       
-      // Écrire le fichier
-      await writeFile(path.join(uploadDir, fileName), buffer)
+      // Upload vers Cloudinary
+      const uploadResult = await uploadToCloudinary(
+        buffer,
+        image.name,
+        'user-avatars'
+      )
+      
+      imageUrl = uploadResult.secure_url
     } catch (error) {
-      console.error("Erreur lors de l'enregistrement de l'image:", error)
+      console.error("Erreur lors de l'upload de l'image:", error)
       return NextResponse.json(
         { message: "Erreur lors de l'enregistrement de l'image" },
         { status: 500 }
@@ -94,7 +104,7 @@ export async function POST(request: NextRequest) {
         lastName,
         email,
         password: hashedPassword,
-        image: `/uploads/${fileName}`,
+        image: imageUrl,
         status: "offline",
       },
     })
