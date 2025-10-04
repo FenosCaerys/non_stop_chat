@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
+import { useUserStatus } from '@/hooks/useUserStatus'
 
 interface User {
   id: string
@@ -25,6 +26,7 @@ export default function UsersList({ currentUserId, searchTerm = '' }: { currentU
   const [lastMessages, setLastMessages] = useState<Record<string, LastMessage>>({}) 
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const { getUserStatus } = useUserStatus()
   // searchTerm est maintenant reçu comme prop
 
   useEffect(() => {
@@ -161,11 +163,11 @@ export default function UsersList({ currentUserId, searchTerm = '' }: { currentU
               <p className={`text-sm ${lastMessages[user.id]?.sender_id !== currentUserId && !lastMessages[user.id]?.is_read ? 'font-bold text-gray-800' : 'text-gray-500'} truncate`}>
                 {lastMessages[user.id]?.last_message 
                   ? lastMessages[user.id].last_message 
-                  : user.status === 'online' ? 'En ligne' : 'Hors ligne'}
+                  : getUserStatus(user.id) === 'online' ? 'En ligne' : 'Hors ligne'}
               </p>
             </div>
           </div>
-          <div className={`w-2 h-2 rounded-full mr-2 ${user.status === 'online' ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+          <div className={`w-2 h-2 rounded-full mr-2 ${getUserStatus(user.id) === 'online' ? 'bg-green-500' : 'bg-gray-300'}`}></div>
         </Link>
       ))}
     </div>

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { getServerSession } from "next-auth"
 import { authOptions } from "../../../auth/[...nextauth]/route"
+import { pusherServer, PUSHER_EVENTS, PUSHER_CHANNELS } from "@/lib/pusher"
 
 export async function PUT(
   request: NextRequest,
@@ -48,6 +49,24 @@ export async function PUT(
     })
 
     console.log(`📊 Statut mis à jour: ${updatedUser.firstName} ${updatedUser.lastName} -> ${status}`)
+
+    // Déclencher l'événement Pusher pour notifier les autres utilisateurs
+    try {
+      await pusherServer.trigger(
+        PUSHER_CHANNELS.USER_STATUS,
+        PUSHER_EVENTS.USER_STATUS_UPDATED,
+        {
+          userId: updatedUser.id,
+          firstName: updatedUser.firstName,
+          lastName: updatedUser.lastName,
+          status: updatedUser.status,
+          timestamp: new Date().toISOString()
+        }
+      )
+    } catch (pusherError) {
+      console.error("Erreur lors de l'envoi via Pusher:", pusherError)
+      // Ne pas faire échouer la requête si Pusher échoue
+    }
 
     return NextResponse.json({
       message: "Statut mis à jour avec succès",

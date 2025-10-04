@@ -4,6 +4,7 @@ import { Inter } from 'next/font/google'
 import './globals.css'
 import AuthProvider from '@/components/providers/AuthProvider'
 import PWAInstaller from '@/components/PWAInstaller'
+import MessageNotification from '@/components/notifications/MessageNotification'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -54,6 +55,7 @@ export default function RootLayout({
       <body className={inter.className}>
         <AuthProvider>
           {children}
+          <MessageNotification />
           <PWAInstaller />
         </AuthProvider>
       </body>

@@ -8,6 +8,8 @@ import Image from 'next/image'
 import Link from 'next/link'
 import ChatBox from '@/components/chat/ChatBox'
 import FileUpload from '@/components/chat/FileUpload'
+import { useUserStatus } from '@/hooks/useUserStatus'
+import { useHeartbeat } from '@/hooks/useHeartbeat'
 import { User } from '@prisma/client'
 
 interface ChatPageProps {
@@ -23,6 +25,10 @@ export default function ChatPage({ params }: ChatPageProps) {
   const [message, setMessage] = useState('')
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [isUploading, setIsUploading] = useState(false)
+  const { getUserStatus } = useUserStatus()
+  
+  // Activer le heartbeat pour maintenir le statut online
+  useHeartbeat()
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -156,7 +162,7 @@ export default function ChatPage({ params }: ChatPageProps) {
                   {recipient.firstName} {recipient.lastName}
                 </h2>
                 <p className="text-sm text-gray-500">
-                  {recipient.status === 'online' ? 'En ligne' : 'Hors ligne'}
+                  {getUserStatus(recipient.id) === 'online' ? 'En ligne' : 'Hors ligne'}
                 </p>
               </div>
             </>  

@@ -34,6 +34,7 @@ export async function GET(request: NextRequest) {
             lastName: true,
             email: true,
             image: true,
+            status: true,
           }
         },
         recipient: {
@@ -43,12 +44,14 @@ export async function GET(request: NextRequest) {
             lastName: true,
             email: true,
             image: true,
+            status: true,
           }
         }
       },
       orderBy: {
         createdAt: 'desc',
       },
+      take: 100, // Limiter pour éviter les performances dégradées
     })
 
     // Grouper par conversation et garder seulement le dernier message
@@ -60,16 +63,35 @@ export async function GET(request: NextRequest) {
         : message.senderId
       
       if (!conversationsMap.has(otherUserId)) {
+        const otherUser = message.senderId === session.user.id 
+          ? message.recipient 
+          : message.sender
+          
         conversationsMap.set(otherUserId, {
-          ...message,
-          otherUser: message.senderId === session.user.id 
-            ? message.recipient 
-            : message.sender
+          id: message.id,
+          content: message.content,
+          createdAt: message.createdAt,
+          senderId: message.senderId,
+          recipientId: message.recipientId,
+          isRead: message.isRead,
+          fileUrl: message.fileUrl,
+          fileName: message.fileName,
+          fileType: message.fileType,
+          fileSize: message.fileSize,
+          otherUser: {
+            id: otherUser.id,
+            firstName: otherUser.firstName,
+            lastName: otherUser.lastName,
+            email: otherUser.email,
+            image: otherUser.image,
+            status: otherUser.status,
+          }
         })
       }
     })
 
     const conversations = Array.from(conversationsMap.values())
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
 
     return NextResponse.json({ 
       conversations,

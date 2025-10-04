@@ -90,8 +90,27 @@ export default React.forwardRef(function ChatBox(
 
     const handleNewMessage = (data: PusherMessage) => {
       console.log('Nouveau message reçu via Pusher:', data)
-      // Rafraîchir les messages immédiatement
-      fetchLatestMessages()
+      
+      // Ajouter le message directement au state au lieu de refetch
+      const newMessage: Message = {
+        id: data.id,
+        content: data.content,
+        senderId: data.senderId,
+        recipientId: data.recipientId,
+        createdAt: data.createdAt,
+        fileUrl: data.fileUrl,
+        fileName: data.fileName,
+        fileType: data.fileType
+      }
+      
+      setMessages(prevMessages => {
+        // Éviter les doublons
+        const messageExists = prevMessages.some(msg => msg.id === newMessage.id)
+        if (messageExists) {
+          return prevMessages
+        }
+        return [...prevMessages, newMessage]
+      })
       
       // Si le message vient du destinataire, le marquer comme lu
       if (data.senderId === recipientId) {
@@ -116,20 +135,32 @@ export default React.forwardRef(function ChatBox(
 
   const fetchLatestMessages = async () => {
     try {
-      const response = await fetch(`/api/messages?recipientId=${recipientId}`)
+      const response = await fetch(`/api/messages?recipientId=${recipientId}`, {
+        cache: 'no-store', // Forcer le rechargement
+        headers: {
+          'Cache-Control': 'no-cache'
+        }
+      })
       
       if (!response.ok) {
         throw new Error('Erreur lors de la récupération des messages')
       }
       
       const data = await response.json()
-      setMessages(data.messages)
+      
+      // Mettre à jour seulement si les messages ont changé
+      setMessages(prevMessages => {
+        if (JSON.stringify(prevMessages) !== JSON.stringify(data.messages)) {
+          return data.messages
+        }
+        return prevMessages
+      })
       
       // Toujours défiler vers le bas après avoir reçu de nouveaux messages
       // Utiliser setTimeout pour s'assurer que le DOM est mis à jour avant de défiler
       setTimeout(() => {
         scrollToBottom()
-      }, 100)
+      }, 50)
     } catch (error) {
       console.error('Erreur:', error)
     }

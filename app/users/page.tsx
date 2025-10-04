@@ -7,12 +7,16 @@ import { Search, LogOut } from 'lucide-react'
 import Image from 'next/image'
 import UsersList from '@/components/users/UsersList'
 import UpdateProfileImage from '@/components/UpdateProfileImage'
+import { useHeartbeat } from '@/hooks/useHeartbeat'
 
 export default function Users() {
   const router = useRouter()
   const { data: session, status } = useSession()
   const [searchTerm, setSearchTerm] = useState('')
   const [isSearchActive, setIsSearchActive] = useState(false)
+  
+  // Activer le heartbeat pour maintenir le statut online
+  useHeartbeat()
 
   useEffect(() => {
     if (status === 'unauthenticated') {

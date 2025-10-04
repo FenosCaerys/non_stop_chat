@@ -16,6 +16,12 @@ export const pusherClient = new PusherClient(
   {
     cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER!,
     forceTLS: true,
+    authEndpoint: '/api/pusher',
+    auth: {
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+    },
   }
 )
 
@@ -35,6 +41,12 @@ export interface PusherMessage {
 export const PUSHER_EVENTS = {
   NEW_MESSAGE: 'new-message',
   MESSAGE_READ: 'message-read',
+  USER_STATUS_UPDATED: 'user-status-updated',
+} as const
+
+// Canaux globaux
+export const PUSHER_CHANNELS = {
+  USER_STATUS: 'user-status',
 } as const
 
 // Fonction utilitaire pour générer le nom du canal de chat
