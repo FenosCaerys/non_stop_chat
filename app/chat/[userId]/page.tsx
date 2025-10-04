@@ -7,8 +7,8 @@ import { ArrowLeft, Send } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import ChatBox from '@/components/chat/ChatBox'
+import FileUpload from '@/components/chat/FileUpload'
 import { User } from '@prisma/client'
-import { io, Socket } from 'socket.io-client'
 
 interface ChatPageProps {
   params: {
@@ -21,8 +21,8 @@ export default function ChatPage({ params }: ChatPageProps) {
   const { data: session, status } = useSession()
   const [recipient, setRecipient] = useState<User | null>(null)
   const [message, setMessage] = useState('')
-  const [socket, setSocket] = useState<Socket | null>(null)
-  const [isConnected, setIsConnected] = useState(false)
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [isUploading, setIsUploading] = useState(false)
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -53,32 +53,22 @@ export default function ChatPage({ params }: ChatPageProps) {
     }
   }, [params.userId, router])
 
-  useEffect(() => {
-    // Initialiser la connexion Socket.io
-    if (session?.user?.id && recipient) {
-      const socketInstance = io(process.env.NEXT_PUBLIC_SOCKET_URL || 'http://localhost:3001', {
-        query: {
-          userId: session.user.id
-        }
-      })
+  // Fonction pour gérer l'upload de fichier
+  const handleFileUpload = async (file: File): Promise<any> => {
+    const formData = new FormData()
+    formData.append('file', file)
 
-      socketInstance.on('connect', () => {
-        setIsConnected(true)
-        console.log('Connected to socket server')
-      })
+    const response = await fetch('/api/upload', {
+      method: 'POST',
+      body: formData,
+    })
 
-      socketInstance.on('disconnect', () => {
-        setIsConnected(false)
-        console.log('Disconnected from socket server')
-      })
-
-      setSocket(socketInstance)
-
-      return () => {
-        socketInstance.disconnect()
-      }
+    if (!response.ok) {
+      throw new Error('Erreur lors de l\'upload')
     }
-  }, [session?.user?.id, recipient])
+
+    return response.json()
+  }
 
   // Référence au composant ChatBox pour pouvoir appeler ses méthodes
   const chatBoxRef = React.useRef<{fetchLatestMessages: () => Promise<void>}>(null);
@@ -86,34 +76,39 @@ export default function ChatPage({ params }: ChatPageProps) {
   const sendMessage = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    if (!message.trim() || !session?.user?.id || !recipient?.id) return
+    if ((!message.trim() && !selectedFile) || !session?.user?.id || !recipient?.id) return
 
+    setIsUploading(true)
+    
     try {
+      let fileData = null
+      
+      // Upload du fichier si présent
+      if (selectedFile) {
+        const uploadResult = await handleFileUpload(selectedFile)
+        fileData = uploadResult.file
+      }
+      
       const response = await fetch('/api/messages', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          content: message,
+          content: message || (fileData ? `Fichier partagé: ${fileData.fileName}` : ''),
           recipientId: recipient.id,
+          ...(fileData && {
+            fileUrl: fileData.url,
+            fileName: fileData.fileName,
+            fileType: fileData.fileType,
+            fileSize: fileData.fileSize,
+            publicId: fileData.publicId,
+          }),
         }),
       })
 
       if (!response.ok) {
         throw new Error('Erreur lors de l\'envoi du message')
-      }
-
-      // Récupérer les données du message créé
-      const messageData = await response.json();
-      
-      // Émettre l'événement de nouveau message via socket.io
-      if (socket && isConnected) {
-        socket.emit('new_message', {
-          senderId: session.user.id,
-          recipientId: recipient.id,
-          message: messageData.data // Transmettre le contenu complet du message
-        })
       }
       
       // Rafraîchir les messages immédiatement après l'envoi
@@ -122,8 +117,12 @@ export default function ChatPage({ params }: ChatPageProps) {
       }
 
       setMessage('')
+      setSelectedFile(null)
     } catch (error) {
       console.error('Erreur:', error)
+      alert('Erreur lors de l\'envoi du message')
+    } finally {
+      setIsUploading(false)
     }
   }
 
@@ -169,30 +168,49 @@ export default function ChatPage({ params }: ChatPageProps) {
             ref={chatBoxRef}
             currentUserId={session.user.id} 
             recipientId={recipient.id} 
-            recipientImage={recipient.image || '/placeholder.png'} 
-            socket={socket}
+            recipientImage={recipient.image || '/placeholder.png'}
           />
         )}
 
         {session && recipient && (
-          <form onSubmit={sendMessage} className="flex items-center p-4 border-t border-gray-200">
-            <input
-              type="text"
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              placeholder="Tapez votre message ici..."
-              className="flex-1 p-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-primary"
-            />
-            <button
-              type="submit"
-              className={`p-2 rounded-r-md ${
-                message.trim() ? 'bg-primary text-white' : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-              }`}
-            disabled={!message.trim()}
-          >
-            <Send size={20} />
-          </button>
-        </form>
+          <form onSubmit={sendMessage} className="p-4 border-t border-gray-200">
+            {/* Zone d'upload de fichier */}
+            <div className="mb-3">
+              <FileUpload
+                onFileSelect={setSelectedFile}
+                onFileRemove={() => setSelectedFile(null)}
+                selectedFile={selectedFile}
+                isUploading={isUploading}
+              />
+            </div>
+            
+            {/* Zone de saisie de message */}
+            <div className="flex items-center">
+              <input
+                type="text"
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                placeholder="Tapez votre message ici..."
+                className="flex-1 p-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-primary"
+                disabled={isUploading}
+              />
+              <button
+                type="submit"
+                className={`p-2 rounded-r-md ${
+                  (message.trim() || selectedFile) && !isUploading
+                    ? 'bg-primary text-white' 
+                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                }`}
+                disabled={(!message.trim() && !selectedFile) || isUploading}
+              >
+                {isUploading ? (
+                  <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white"></div>
+                ) : (
+                  <Send size={20} />
+                )}
+              </button>
+            </div>
+          </form>
         )}
       </section>
     </div>

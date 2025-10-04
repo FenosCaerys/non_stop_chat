@@ -2,7 +2,9 @@
 
 import React, { useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
-import { Socket } from 'socket.io-client'
+import { pusherClient, getChatChannelName, PUSHER_EVENTS, PusherMessage } from '@/lib/pusher'
+import { Channel } from 'pusher-js'
+import MessageAttachment from './MessageAttachment'
 
 interface Message {
   id: string
@@ -10,23 +12,27 @@ interface Message {
   senderId: string
   recipientId: string
   createdAt: string
+  fileUrl?: string
+  fileName?: string
+  fileType?: string
+  fileSize?: number
 }
 
 interface ChatBoxProps {
   currentUserId: string
   recipientId: string
   recipientImage: string
-  socket: Socket | null
 }
 
 export default React.forwardRef(function ChatBox(
-  { currentUserId, recipientId, recipientImage, socket }: ChatBoxProps,
+  { currentUserId, recipientId, recipientImage }: ChatBoxProps,
   ref: React.ForwardedRef<{fetchLatestMessages: () => Promise<void>}>
 ) {
   const [messages, setMessages] = useState<Message[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const chatBoxRef = useRef<HTMLDivElement>(null)
   const [isActive, setIsActive] = useState(false)
+  const [channel, setChannel] = useState<Channel | null>(null)
 
   useEffect(() => {
     // Récupérer l'historique des messages
@@ -77,32 +83,29 @@ export default React.forwardRef(function ChatBox(
   }
 
   useEffect(() => {
-    // Écouter les nouveaux messages via socket.io
-    if (socket) {
-      const handleNewMessage = (data: any) => {
-        // Vérifier si le message est pour cette conversation
-        if (
-          (data.senderId === recipientId && data.recipientId === currentUserId) ||
-          (data.senderId === currentUserId && data.recipientId === recipientId)
-        ) {
-          console.log('Nouveau message reçu:', data);
-          // Rafraîchir les messages immédiatement
-          fetchLatestMessages();
-          
-          // Si le message vient du destinataire, le marquer comme lu
-          if (data.senderId === recipientId) {
-            markMessagesAsRead();
-          }
-        }
-      }
+    // Configurer Pusher pour écouter les nouveaux messages
+    const channelName = getChatChannelName(currentUserId, recipientId)
+    const pusherChannel = pusherClient.subscribe(channelName)
+    setChannel(pusherChannel)
 
-      socket.on('receive_message', handleNewMessage);
-
-      return () => {
-        socket.off('receive_message', handleNewMessage);
+    const handleNewMessage = (data: PusherMessage) => {
+      console.log('Nouveau message reçu via Pusher:', data)
+      // Rafraîchir les messages immédiatement
+      fetchLatestMessages()
+      
+      // Si le message vient du destinataire, le marquer comme lu
+      if (data.senderId === recipientId) {
+        markMessagesAsRead()
       }
     }
-  }, [socket, recipientId, currentUserId])
+
+    pusherChannel.bind(PUSHER_EVENTS.NEW_MESSAGE, handleNewMessage)
+
+    return () => {
+      pusherChannel.unbind(PUSHER_EVENTS.NEW_MESSAGE, handleNewMessage)
+      pusherClient.unsubscribe(channelName)
+    }
+  }, [recipientId, currentUserId])
   
   // Défiler vers le bas lorsque les messages changent
   useEffect(() => {
@@ -203,7 +206,18 @@ export default React.forwardRef(function ChatBox(
                 : 'bg-white text-gray-800 rounded-bl-none'
             }`}
           >
-            <p>{message.content}</p>
+            {message.content && <p>{message.content}</p>}
+            
+            {/* Affichage des pièces jointes */}
+            {message.fileUrl && message.fileName && message.fileType && (
+              <MessageAttachment
+                fileUrl={message.fileUrl}
+                fileName={message.fileName}
+                fileType={message.fileType}
+                fileSize={message.fileSize}
+              />
+            )}
+            
             <span className={`text-xs block mt-1 ${
               message.senderId === currentUserId ? 'text-gray-200' : 'text-gray-500'
             }`}>

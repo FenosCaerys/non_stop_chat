@@ -2,12 +2,19 @@ import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { getServerSession } from "next-auth"
 import { authOptions } from "../auth/[...nextauth]/route"
+import { pusherServer, getChatChannelName, PUSHER_EVENTS } from "@/lib/pusher"
 import { z } from "zod"
 
 // Schéma de validation pour la création de message
 const messageSchema = z.object({
   content: z.string().min(1, "Le contenu du message est requis"),
   recipientId: z.string().uuid("ID de destinataire invalide"),
+  // Champs optionnels pour les pièces jointes
+  fileUrl: z.string().url().optional(),
+  fileName: z.string().optional(),
+  fileType: z.string().optional(),
+  fileSize: z.number().optional(),
+  publicId: z.string().optional(),
 })
 
 export async function POST(request: NextRequest) {
@@ -33,7 +40,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const { content, recipientId } = validationResult.data
+    const { content, recipientId, fileUrl, fileName, fileType, fileSize, publicId } = validationResult.data
 
     // Vérifier si le destinataire existe
     const recipient = await prisma.user.findUnique({
@@ -53,6 +60,12 @@ export async function POST(request: NextRequest) {
         content,
         senderId: session.user.id,
         recipientId,
+        // Champs pour les pièces jointes (optionnels)
+        fileUrl,
+        fileName,
+        fileType,
+        fileSize,
+        publicId,
         // Le champ isRead sera automatiquement défini à false grâce au @default(false) dans le schéma
       },
     })
@@ -66,6 +79,15 @@ export async function POST(request: NextRequest) {
       senderId: message.senderId,
       recipientId: message.recipientId,
       createdAt: message.createdAt
+    }
+
+    // Déclencher l'événement Pusher pour la messagerie en temps réel
+    try {
+      const channelName = getChatChannelName(session.user.id, recipientId)
+      await pusherServer.trigger(channelName, PUSHER_EVENTS.NEW_MESSAGE, messageData)
+    } catch (pusherError) {
+      console.error("Erreur lors de l'envoi via Pusher:", pusherError)
+      // Ne pas faire échouer la requête si Pusher échoue
     }
 
     return NextResponse.json(

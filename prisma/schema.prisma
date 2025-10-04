@@ -34,6 +34,13 @@ model Message {
   senderId     String   @map("sender_id")
   recipientId  String   @map("recipient_id")
   isRead       Boolean  @default(false) @map("is_read")
+  
+  // Champs pour les pièces jointes
+  fileUrl      String?  @map("file_url")
+  fileName     String?  @map("file_name")
+  fileType     String?  @map("file_type")
+  fileSize     Int?     @map("file_size")
+  publicId     String?  @map("public_id") // ID Cloudinary pour la suppression
 
   sender       User     @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
   recipient    User     @relation("ReceivedMessages", fields: [recipientId], references: [id], onDelete: Cascade)
