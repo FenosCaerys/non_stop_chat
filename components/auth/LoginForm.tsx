@@ -7,6 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { signIn } from 'next-auth/react'
 import Link from 'next/link'
 import { EyeIcon, EyeOffIcon } from 'lucide-react'
+import { loginUser } from '@/lib/api-client'
 
 const loginSchema = z.object({
   email: z.string().email("Adresse email invalide"),
@@ -29,19 +30,38 @@ export default function LoginForm() {
     setErrorMessage(null)
 
     try {
-      const result = await signIn('credentials', {
-        redirect: false,
-        email: data.email,
-        password: data.password,
-      })
+      console.log('🔐 Tentative de connexion...')
+      
+      // Essayer d'abord l'API simple (plus robuste)
+      const apiResult = await loginUser(data.email, data.password)
+      
+      if (apiResult.data) {
+        console.log('✅ Connexion API réussie:', apiResult.data.user.email)
+        window.location.href = '/users'
+        return
+      }
+      
+      if (apiResult.error) {
+        console.log('❌ API Error, essai NextAuth...', apiResult.error)
+        
+        // Fallback vers NextAuth si l'API simple échoue
+        const result = await signIn('credentials', {
+          redirect: false,
+          email: data.email,
+          password: data.password,
+        })
 
-      if (result?.error) {
-        throw new Error("Email ou mot de passe incorrect")
+        if (result?.error) {
+          throw new Error(apiResult.error || "Email ou mot de passe incorrect")
+        }
+
+        window.location.href = '/users'
+        return
       }
 
-      window.location.href = '/users'
     } catch (error: any) {
-      setErrorMessage(error.message)
+      console.error('❌ Erreur connexion complète:', error)
+      setErrorMessage(error.message || "Erreur de connexion. Vérifiez votre connexion internet.")
     } finally {
       setIsLoading(false)
     }

@@ -9,12 +9,41 @@ export async function POST(request: NextRequest) {
   try {
     console.log('🔐 Tentative de connexion simple...')
     
-    const { email, password } = await request.json()
+    // Gestion robuste du parsing JSON
+    let email: string, password: string
+    
+    try {
+      const body = await request.json()
+      email = body.email
+      password = body.password
+    } catch (parseError) {
+      console.error('❌ Erreur parsing JSON:', parseError)
+      return NextResponse.json(
+        { 
+          message: "Format de requête invalide",
+          error: "JSON_PARSE_ERROR"
+        },
+        { 
+          status: 400,
+          headers: {
+            'Content-Type': 'application/json',
+          }
+        }
+      )
+    }
     
     if (!email || !password) {
       return NextResponse.json(
-        { message: "Email et mot de passe requis" },
-        { status: 400 }
+        { 
+          message: "Email et mot de passe requis",
+          error: "MISSING_CREDENTIALS"
+        },
+        { 
+          status: 400,
+          headers: {
+            'Content-Type': 'application/json',
+          }
+        }
       )
     }
 
@@ -69,8 +98,16 @@ export async function POST(request: NextRequest) {
     if (!user) {
       console.log('❌ Utilisateur non trouvé ou mot de passe incorrect')
       return NextResponse.json(
-        { message: "Email ou mot de passe incorrect" },
-        { status: 401 }
+        { 
+          message: "Email ou mot de passe incorrect",
+          error: "INVALID_CREDENTIALS"
+        },
+        { 
+          status: 401,
+          headers: {
+            'Content-Type': 'application/json',
+          }
+        }
       )
     }
 
@@ -97,6 +134,11 @@ export async function POST(request: NextRequest) {
         lastName: user.lastName,
         image: user.image
       }
+    }, {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/json',
+      }
     })
 
     // Définir le cookie de session (nom différent pour éviter les conflits)
@@ -114,8 +156,16 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("❌ Erreur connexion simple:", error)
     return NextResponse.json(
-      { message: "Erreur serveur lors de la connexion" },
-      { status: 500 }
+      { 
+        message: "Erreur serveur lors de la connexion",
+        error: "SERVER_ERROR"
+      },
+      { 
+        status: 500,
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      }
     )
   }
 }
